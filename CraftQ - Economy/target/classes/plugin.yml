@@ -1,0 +1,11 @@
+name: CEconomy
+version: 1.0
+author: Tim Nawratil
+
+main: de.craftq.tim.economy.Economy
+
+commands:
+  money:
+  pay:
+  setmoney:
+  addmoney:
