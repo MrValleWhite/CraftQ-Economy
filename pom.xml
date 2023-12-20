@@ -17,10 +17,6 @@
 			<id>codemc-releases </id>
 			<url>https://repo.codemc.io/repository/maven-public/</url>
 		</repository>
-		<repository>
-  			<id>jitpack.io</id>
-  			<url>https://jitpack.io</url>
-		</repository>
 
 	</repositories>
 
@@ -56,5 +52,12 @@
 			</resource>
 		</resources>
 	</build>
+	
+	<distributionManagement>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+	</distributionManagement>
   
 </project>
