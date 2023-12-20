@@ -1,0 +1,9 @@
+de\craftq\tim\economy\cmd\MoneyCommand.class
+de\craftq\tim\economy\Economy.class
+de\craftq\tim\economy\cmd\SetMoneyCommand.class
+de\craftq\tim\economy\listener\JoinListener.class
+de\craftq\tim\economy\cmd\PayCommand.class
+de\craftq\tim\economy\cmd\AddMoneyCommand.class
+de\craftq\tim\economy\utils\ConsoleManager.class
+de\craftq\tim\economy\mysql\EconomyMySQL.class
+de\craftq\tim\economy\mysql\EconomyMySQLAPI.class
