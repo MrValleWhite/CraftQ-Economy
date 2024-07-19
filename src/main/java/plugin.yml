@@ -1,0 +1,14 @@
+name: CEconomy
+version: 1.0
+author: Tim Nawratil
+depend: [Vault]
+
+main: de.craftq.tim.economy.CEconomy
+
+commands:
+  money:
+  pay:
+  setmoney:
+  addmoney:
+  moneytop:
+    aliases: [baltop]
