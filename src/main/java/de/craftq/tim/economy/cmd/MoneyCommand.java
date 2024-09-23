@@ -23,11 +23,9 @@ public class MoneyCommand implements CommandExecutor {
 
 		if (command.getName().equalsIgnoreCase("money")) {
 			if (args.length == 0) {
-				// Zeige das Geld des ausführenden Spielers an
 				player.sendMessage(CEconomy.pr + "§7Du hast §e"
 						+ EconomyMySQLAPI.formatMoney(EconomyMySQLAPI.getCoins(player.getName())) + "§eq");
 			} else {
-				// Zeige das Geld des angegebenen Spielers an
 				String targetName = args[0];
 				OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(targetName);
 
@@ -35,7 +33,7 @@ public class MoneyCommand implements CommandExecutor {
 					player.sendMessage(CEconomy.pr + "§cSpieler " + targetName + " wurde nicht gefunden.");
 				} else {
 					double targetBalance = EconomyMySQLAPI.getCoins(targetPlayer.getName());
-					player.sendMessage(CEconomy.pr + "§7" + targetName + " hat §e"
+					player.sendMessage(CEconomy.pr + "§7Der Spieler §e" + targetName + " §7hat §e"
 							+ EconomyMySQLAPI.formatMoney(targetBalance) + "§eq");
 				}
 			}

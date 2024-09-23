@@ -7,6 +7,7 @@ main: de.craftq.tim.economy.CEconomy
 
 commands:
   money:
+    aliases: [bal, balance]
   pay:
   setmoney:
   addmoney:
