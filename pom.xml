@@ -17,6 +17,11 @@
 			<id>codemc-releases</id>
 			<url>https://repo.codemc.io/repository/maven-public/</url>
 		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+
 	</repositories>
 
 	<dependencies>
@@ -31,6 +36,11 @@
 			<artifactId>VaultAPI</artifactId>
 			<version>1.7</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jitpack</groupId>
+			<artifactId>maven-modular</artifactId>
+			<version>1.1</version>
 		</dependency>
 
 		<dependency>
@@ -87,5 +97,16 @@
 			</resource>
 		</resources>
 	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>maven-snapshots</id>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>maven-shade-plugin</id>
+			<url>https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin</url>
+		</pluginRepository>
+	</pluginRepositories>
   
 </project>
