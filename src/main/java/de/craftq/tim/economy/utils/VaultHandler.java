@@ -1,7 +1,9 @@
 package de.craftq.tim.economy.utils;
 
 import java.util.List;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import de.craftq.tim.economy.CEconomy;
@@ -54,13 +56,11 @@ public class VaultHandler implements Economy {
 
 	@Override
 	public boolean hasAccount(String playerName) {
-		if (EconomyMySQLAPI.playerExists(playerName)) {
-			return true;
-		} else {
-			EconomyMySQLAPI.createPlayer(playerName);
-			return true;
-		}
-	}
+        if (!EconomyMySQLAPI.playerExists(playerName)) {
+            EconomyMySQLAPI.createPlayer(playerName.toString(), playerName);
+        }
+        return true;
+    }
 
 	@Override
 	public boolean hasAccount(OfflinePlayer player) {
@@ -99,24 +99,27 @@ public class VaultHandler implements Economy {
 
 	@Override
 	public boolean has(String playerName, double amount) {
-		return EconomyMySQLAPI.getCoins(playerName) != null && EconomyMySQLAPI.getCoins(playerName) >= amount;
+		OfflinePlayer player = Bukkit.getOfflinePlayer(playerName);
+		UUID playerUUID = player.getUniqueId();
+		if (playerUUID == null) {
+			return false;
+		}
+		return EconomyMySQLAPI.getCoins(playerUUID.toString()) >= amount;
 	}
 
 	@Override
 	public boolean has(OfflinePlayer player, double amount) {
-		return EconomyMySQLAPI.getCoins(player.getName()) != null
-				&& EconomyMySQLAPI.getCoins(player.getName()) >= amount;
+		return EconomyMySQLAPI.getCoins(player.getUniqueId().toString()) >= amount;
 	}
 
 	@Override
 	public boolean has(String playerName, String worldName, double amount) {
-		return EconomyMySQLAPI.getCoins(playerName) != null && EconomyMySQLAPI.getCoins(playerName) >= amount;
+		return has(playerName, amount);
 	}
 
 	@Override
 	public boolean has(OfflinePlayer player, String worldName, double amount) {
-		return EconomyMySQLAPI.getCoins(player.getName()) != null
-				&& EconomyMySQLAPI.getCoins(player.getName()) >= amount;
+		return has(player, amount);
 	}
 
 	@Override

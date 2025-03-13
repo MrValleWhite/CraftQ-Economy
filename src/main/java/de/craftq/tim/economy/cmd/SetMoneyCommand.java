@@ -25,11 +25,6 @@ public class SetMoneyCommand implements CommandExecutor {
 		Player player = (Player) sender;
 
 		if (player.hasPermission("craftq.*")) {
-
-			if (!(sender instanceof Player)) {
-				ConsoleManager.sendMessage(CEconomy.noPlayer);
-			}
-
 			if (args.length < 2) {
 				player.sendMessage(CEconomy.pr + "§cVerwendung: /setmoney <Spieler> <Betrag>");
 				return true;
@@ -51,7 +46,7 @@ public class SetMoneyCommand implements CommandExecutor {
 				return true;
 			}
 
-			EconomyMySQLAPI.setCoins(target.getName(), amount);
+			EconomyMySQLAPI.setCoins(target.getUniqueId().toString(), amount);
 
 			player.sendMessage(CEconomy.pr + "§7Du hast erfolgreich das Geld von §e" + target.getName() + " §7auf §e"
 					+ EconomyMySQLAPI.formatMoney(amount) + "§eq §7gesetzt.");

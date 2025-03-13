@@ -1,6 +1,7 @@
 package de.craftq.tim.economy.cmd;
 
 import java.text.DecimalFormat;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -11,7 +12,6 @@ import org.bukkit.entity.Player;
 
 import de.craftq.tim.economy.CEconomy;
 import de.craftq.tim.economy.mysql.EconomyMySQLAPI;
-import de.craftq.tim.economy.utils.ConsoleManager;
 
 public class PayCommand implements CommandExecutor {
 
@@ -20,14 +20,14 @@ public class PayCommand implements CommandExecutor {
 		return Double.parseDouble(decimalFormat.format(value));
 	}
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-		Player player = (Player) sender;
-
 		if (!(sender instanceof Player)) {
-			ConsoleManager.sendMessage(CEconomy.noPlayer);
+			sender.sendMessage("§cNur Spieler können diesen Befehl benutzen.");
 			return true;
 		}
+
+		Player player = (Player) sender;
 
 		if (args.length < 2) {
 			player.sendMessage(CEconomy.pr + "§cVerwendung: /pay <Spieler> <Betrag>");
@@ -35,9 +35,16 @@ public class PayCommand implements CommandExecutor {
 		}
 
 		OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+		UUID targetUUID = target.getUniqueId();
+		UUID senderUUID = player.getUniqueId();
 
-		if (!target.hasPlayedBefore()) {
-			player.sendMessage(CEconomy.pr + "§cDieser Spieler war noch nie auf CraftQ!");
+		if (targetUUID == null) {
+			player.sendMessage(CEconomy.pr + "§cDieser Spieler existiert nicht oder hat nie gespielt!");
+			return true;
+		}
+
+		if (targetUUID.equals(senderUUID)) {
+			player.sendMessage(CEconomy.pr + "§cDu kannst kein Geld an dich selbst senden!");
 			return true;
 		}
 
@@ -51,28 +58,28 @@ public class PayCommand implements CommandExecutor {
 		}
 
 		if (amount <= 0) {
-			player.sendMessage("Der Betrag muss größer als 0 sein.");
+			player.sendMessage(CEconomy.pr + "§cDer Betrag muss größer als 0 sein.");
 			return true;
 		}
 
-		double senderBalance = EconomyMySQLAPI.getCoins(player.getName());
+		double senderBalance = EconomyMySQLAPI.getCoins(senderUUID.toString());
 
 		if (senderBalance < amount) {
 			player.sendMessage(CEconomy.pr + "§cDu hast nicht genug Geld.");
 			return true;
 		}
 
-		EconomyMySQLAPI.removeCoins(player.getName(), amount);
-		EconomyMySQLAPI.addCoins(target.getName(), amount);
+		EconomyMySQLAPI.removeCoins(senderUUID.toString(), amount);
+		EconomyMySQLAPI.addCoins(targetUUID.toString(), amount);
 
 		player.sendMessage(CEconomy.pr + "§7Du hast §e" + EconomyMySQLAPI.formatMoney(amount) + "q §7an §e"
 				+ target.getName() + " §7überwiesen.");
-		if (target.isOnline()) {
+
+		if (target.isOnline() && target.getPlayer() != null) {
 			target.getPlayer().sendMessage(CEconomy.pr + "§7Du hast §e" + EconomyMySQLAPI.formatMoney(amount)
 					+ "q §7von §e" + player.getName() + " §7erhalten.");
 		}
 
-		return false;
+		return true;
 	}
-
 }

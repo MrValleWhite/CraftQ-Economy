@@ -1,5 +1,7 @@
 package de.craftq.tim.economy.cmd;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ public class MoneyTopCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-			@NotNull String[] args) {
+							 @NotNull String[] args) {
 		if (command.getName().equalsIgnoreCase("moneytop")) {
 			int page = 1;
 			if (args.length > 0) {
@@ -38,7 +40,7 @@ public class MoneyTopCommand implements CommandExecutor {
 			List<String> topPlayers = getTopPlayers(page);
 
 			if (topPlayers.isEmpty()) {
-				sender.sendMessage(CEconomy.pr + "§cMehr seiten gibt es nicht.");
+				sender.sendMessage(CEconomy.pr + "§cMehr Seiten gibt es nicht.");
 			} else {
 				sender.sendMessage(CEconomy.pr + "§7Die reichsten Spieler (Seite " + page + "):");
 				for (String playerInfo : topPlayers) {
@@ -52,16 +54,18 @@ public class MoneyTopCommand implements CommandExecutor {
 	private List<String> getTopPlayers(int page) {
 		List<String> topPlayers = new ArrayList<>();
 		int offset = (page - 1) * PLAYERS_PER_PAGE;
-		try {
-			ResultSet rs = CEconomy.mysql.query("SELECT NAME, EURO FROM Economy ORDER BY EURO DESC LIMIT "
-					+ PLAYERS_PER_PAGE + " OFFSET " + offset);
-			int rank = offset + 1;
-			while (rs.next()) {
-				String name = rs.getString("NAME");
-				if (!name.equalsIgnoreCase("CEconomy")) {
+		String query = "SELECT NAME, EURO FROM Economy ORDER BY EURO DESC LIMIT ? OFFSET ?";
+
+		try (Connection conn = CEconomy.getMoneyConnection();
+			 PreparedStatement ps = conn.prepareStatement(query)) {
+			ps.setInt(1, PLAYERS_PER_PAGE);
+			ps.setInt(2, offset);
+			try (ResultSet rs = ps.executeQuery()) {
+				int rank = offset + 1;
+				while (rs.next()) {
+					String name = rs.getString("NAME");
 					double euro = rs.getDouble("EURO");
-					topPlayers.add("§8> " + rank + " §8| §7" + name + " §8| " + "§e" + EconomyMySQLAPI.formatMoney(euro)
-							+ "q");
+					topPlayers.add("§8> " + rank + " §8| §7" + name + " §8| " + "§e" + EconomyMySQLAPI.formatMoney(euro) + "q");
 					rank++;
 				}
 			}

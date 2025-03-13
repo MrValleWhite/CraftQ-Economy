@@ -51,7 +51,7 @@ public class AddMoneyCommand implements CommandExecutor {
 				return true;
 			}
 
-			EconomyMySQLAPI.addCoins(target.getName(), amount);
+			EconomyMySQLAPI.addCoins(target.getUniqueId().toString(), amount);
 
 			player.sendMessage(CEconomy.pr + "§7Du hast erfolgreich das Geld von §e" + target.getName() + " §7um §e"
 					+ EconomyMySQLAPI.formatMoney(amount) + "§eq §7aufgestockt.");

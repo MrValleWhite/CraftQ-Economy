@@ -1,6 +1,10 @@
 package de.craftq.tim.economy;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,19 +15,29 @@ import de.craftq.tim.economy.cmd.MoneyTopCommand;
 import de.craftq.tim.economy.cmd.PayCommand;
 import de.craftq.tim.economy.cmd.SetMoneyCommand;
 import de.craftq.tim.economy.listener.JoinListener;
-import de.craftq.tim.economy.mysql.EconomyMySQL;
 import de.craftq.tim.economy.utils.ConsoleManager;
 import de.craftq.tim.economy.utils.VaultHandler;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class CEconomy extends JavaPlugin {
 
 	private static CEconomy plugin;
 
-	public static EconomyMySQL mysql;
+	private static HikariDataSource moneyDataSource;
 
-	public static String pr = "§bCRAFTQ §8| §e";
-	public static String noperm = pr + "§cDazu hast Du keine Rechte!";
-	public static String noPlayer = pr + "§cDieser Befehl ist nur für Spieler";
+	File configFile = new File(getDataFolder(), "mysql.yml");
+
+	public static String pr = translateHexColorCodes("&#8BC1DB§lCraftQ §8| ");
+	public static String noperm = pr + "§cDazu hast Du keine Rechte.";
+
+	public static String translateHexColorCodes(String message) {
+		return message.replaceAll("&#([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])([A-Fa-f0-9])", "§x§$1§$2§$3§$4§$5§$6");
+	}
+
 
 	@Override
 	public void onEnable() {
@@ -33,27 +47,12 @@ public class CEconomy extends JavaPlugin {
 					this, ServicePriority.Normal);
 		}
 
+		loadMySQL();
+
 		registerListener();
 		registerCommands();
 
-		saveConfig();
-
-		mysql = new EconomyMySQL();
-
-		if (getConfig().getString("Host") == null)
-			getConfig().set("Host", "127.0.0.1");
-		if (getConfig().getString("Database") == null)
-			getConfig().set("Database", "EconomyAPI");
-		if (getConfig().getString("Nutzer") == null)
-			getConfig().set("Nutzer", "Benutzername");
-		if (getConfig().getString("Passwort") == null)
-			getConfig().set("Passwort", "Passwort");
-
-		saveConfig();
-
 		plugin = this;
-
-		connectMySQL();
 
 		ConsoleManager.sendMessage("============================================");
 		ConsoleManager.sendMessage("        §6CraftQ-Economy §eVersion 1.0");
@@ -73,7 +72,7 @@ public class CEconomy extends JavaPlugin {
 		ConsoleManager.sendMessage("§bProgrammierung von Tim Nawratil!");
 		ConsoleManager.sendMessage("============================================");
 
-		mysql.close();
+		if(moneyDataSource != null) moneyDataSource.close();
 	}
 
 	private void registerListener() {
@@ -93,20 +92,57 @@ public class CEconomy extends JavaPlugin {
 		return plugin;
 	}
 
-	public void connectMySQL() {
-		String host = getConfig().getString("Host");
-		String database = getConfig().getString("Database");
-		String user = getConfig().getString("Nutzer");
-		String password = getConfig().getString("Passwort");
-		if (host.equalsIgnoreCase("127.0.0.1") && database.equalsIgnoreCase("CoinAPI")
-				&& user.equalsIgnoreCase("Benutzername") && password.equalsIgnoreCase("Passwort")) {
-			Bukkit.getConsoleSender().sendMessage("§8| §bEconomy §8» §cDie MySQL Daten sind ungültig");
-			Bukkit.getPluginManager().disablePlugin(this);
-			return;
+	public void loadMySQL() {
+
+		// Falls die Datei nicht existiert, erstelle sie mit Standardwerten
+		if (!configFile.exists()) {
+			saveDefaultMySQLConfig(configFile);
 		}
-		mysql = new EconomyMySQL(host, database, user, password);
-		mysql.connect();
-		mysql.update("CREATE TABLE IF NOT EXISTS Economy(NAME varchar(64), EURO double)");
+
+		// Lade die Konfigurationsdatei
+		FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+
+		// MySQL-Daten aus der Config laden
+		String host = config.getString("mysql.host", "127.0.0.1");
+		int port = config.getInt("mysql.port", 3306);
+		String database = config.getString("mysql.database", "CraftQEconomyV2");
+		String username = config.getString("mysql.username", "root");
+		String password = config.getString("mysql.password", "password");
+		int maxPoolSize = config.getInt("mysql.maxPoolSize", 10); // Standardwert 10 falls nicht gesetzt
+
+		// HikariCP-Config setzen
+		HikariConfig moneyConfig = new HikariConfig();
+		moneyConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
+		moneyConfig.setUsername(username);
+		moneyConfig.setPassword(password);
+		moneyConfig.setMaximumPoolSize(maxPoolSize);
+
+		// Datenquelle starten
+		moneyDataSource = new HikariDataSource(moneyConfig);
+	}
+
+	public static Connection getMoneyConnection() throws SQLException {
+		return moneyDataSource.getConnection();
+	}
+
+	private void saveDefaultMySQLConfig(File configFile) {
+		FileConfiguration config = new YamlConfiguration();
+
+		// Standardwerte für MySQL-Verbindung
+		config.set("mysql.host", "127.0.0.1");
+		config.set("mysql.port", 3306);
+		config.set("mysql.database", "CraftQEconomyV2");
+		config.set("mysql.username", "root");
+		config.set("mysql.password", "password");
+		config.set("mysql.maxPoolSize", 10);
+
+		try {
+			config.save(configFile);
+			System.out.println("[CraftQ-Economy] mysql.yml wurde erstellt!");
+		} catch (IOException e) {
+			System.out.println("[CraftQ-Economy] Fehler beim Erstellen der mysql.yml!");
+			e.printStackTrace();
+		}
 	}
 
 }
